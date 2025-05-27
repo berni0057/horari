@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horari escolar 👾</title>
+  <style>
+    body {
+      margin: 0;
+      background: #e0f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      height: 100vh;
+      padding-top: 18vh;
+      box-sizing: border-box;
+    }
+    #datetime {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    #date-box, #time-box {
+      background: white;
+      border-radius: 10px;
+      padding: 12px 28px;
+      margin: 6px 0;
+      font-weight: bold;
+      font-size: 3.5rem;
+      color: black;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      user-select: none;
+    }
+    #main-message {
+      font-size: 7.5rem;
+      font-weight: 900;
+      text-align: center;
+      color: #006064;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="datetime">
+      <div id="date-box"></div>
+      <div id="time-box"></div>
+    </div>
+    <div id="main-message"></div>
+  </div>
+  <script>
+    function padZero(num, length = 2) {
+      return num.toString().padStart(length, '0');
+    }
+    function formatTimeDiff(diffMs, withHours = false) {
+      let totalSeconds = Math.floor(diffMs / 1000);
+      let hours = Math.floor(totalSeconds / 3600);
+      let minutes = Math.floor((totalSeconds % 3600) / 60);
+      let seconds = totalSeconds % 60;
+      if (withHours) {
+        return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+      } else {
+        return `${padZero(minutes)}:${padZero(seconds)}`;
+      }
+    }
+    function update() {
+      const now = new Date();
+      const day = padZero(now.getDate());
+      const month = padZero(now.getMonth() + 1);
+      const year = now.getFullYear();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+      const dateStr = `${day}/${month}/${year}`;
+      const timeStr = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+      document.getElementById('date-box').textContent = dateStr;
+      document.getElementById('time-box').textContent = timeStr;
+      const dayOfWeek = now.getDay();
+      const totalMinutes = hours * 60 + minutes;
+      const messageEl = document.getElementById('main-message');
+      const schedule = [
+        { start: 8 * 60, end: 9 * 60, type: 'classe' },
+        { start: 9 * 60, end: 10 * 60, type: 'classe' },
+        { start: 10 * 60, end: 10 * 60 + 20, type: 'esbarjo' },
+        { start: 10 * 60 + 20, end: 11 * 60 + 20, type: 'classe' },
+        { start: 11 * 60 + 20, end: 12 * 60 + 20, type: 'classe' },
+        { start: 12 * 60 + 20, end: 12 * 60 + 40, type: 'esbarjo' },
+        { start: 12 * 60 + 40, end: 13 * 60 + 35, type: 'classe' },
+        { start: 13 * 60 + 35, end: 14 * 60 + 30, type: 'classe' },
+      ];
+      function getCurrentSlot(minuteOfDay) {
+        for (const slot of schedule) {
+          if (minuteOfDay >= slot.start && minuteOfDay < slot.end) {
+            return slot;
+          }
+        }
+        return null;
+      }
+      function getNextChange(minuteOfDay) {
+        for (const slot of schedule) {
+          if (slot.start > minuteOfDay) {
+            return slot;
+          }
+        }
+        return null;
+      }
+      if (dayOfWeek === 0 || dayOfWeek === 6 || (dayOfWeek === 5 && totalMinutes >= 870)) {
+        messageEl.textContent = "🎉 Bon cap de setmana!";
+        return;
+      }
+      if (dayOfWeek >= 1 && dayOfWeek <= 4 && totalMinutes >= 870) {
+        messageEl.textContent = "🌙 Fins demà!";
+        return;
+      }
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes < 480) {
+        const diffMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0) - now;
+        messageEl.textContent = "🕗 Falta " + formatTimeDiff(diffMs, true) + " per comencar les classes";
+        return;
+      }
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes >= 480 && totalMinutes < 870) {
+        const currentSlot = getCurrentSlot(totalMinutes);
+        if (currentSlot) {
+          const nextSlot = getNextChange(totalMinutes);
+          if (nextSlot) {
+            const nextChangeTime = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              Math.floor(nextSlot.start / 60),
+              nextSlot.start % 60,
+              0
+            );
+            const diffMs = nextChangeTime - now;
+            if (currentSlot.type === 'esbarjo') {
+              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
+            } else {
+              if (nextSlot.type === 'esbarjo') {
+                messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
+              } else {
+                messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
+              }
+            }
+            return;
+          }
+        }
+      }
+      messageEl.textContent = "";
+    }
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
