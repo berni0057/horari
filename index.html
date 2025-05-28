@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Horari escolar 👾</title>
+  <title>Horari Escolar 🕗</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body {
       margin: 0;
@@ -11,6 +12,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       height: 100vh;
       overflow: hidden;
+      transition: background-color 0.4s;
     }
     .container {
       display: flex;
@@ -18,20 +20,20 @@
       justify-content: flex-start;
       align-items: center;
       height: 100vh;
-      padding-top: 18vh;
+      padding-top: 10vh;
       box-sizing: border-box;
     }
     #datetime {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
     #date-box, #time-box {
       background: white;
       border-radius: 10px;
       padding: 12px 28px;
-      margin: 6px 0;
+      margin: 4px 0;
       font-weight: bold;
       font-size: 3.5rem;
       color: black;
@@ -39,10 +41,18 @@
       user-select: none;
     }
     #main-message {
-      font-size: 7.5rem;
+      font-size: 7rem;
       font-weight: 900;
       text-align: center;
       color: #006064;
+      user-select: none;
+    }
+    #secondary-message {
+      font-size: 2.2rem;
+      font-weight: 500;
+      text-align: center;
+      color: #004d40;
+      margin-top: 12px;
       user-select: none;
     }
   </style>
@@ -54,6 +64,7 @@
       <div id="time-box"></div>
     </div>
     <div id="main-message"></div>
+    <div id="secondary-message"></div>
   </div>
   <script>
     function padZero(num, length = 2) {
@@ -70,6 +81,31 @@
         return `${padZero(minutes)}:${padZero(seconds)}`;
       }
     }
+
+    let flashInterval = null;
+    let isFlashing = false;
+    const defaultBg = "#e0f7fa";
+    const flashBg = "#F89F90";
+
+    function startFlashingBackground() {
+      if (isFlashing) return;
+      isFlashing = true;
+      let toggle = false;
+      flashInterval = setInterval(() => {
+        document.body.style.backgroundColor = toggle ? defaultBg : flashBg;
+        toggle = !toggle;
+      }, 1000);
+    }
+
+    function stopFlashingBackground() {
+      if (flashInterval) {
+        clearInterval(flashInterval);
+        flashInterval = null;
+      }
+      isFlashing = false;
+      document.body.style.backgroundColor = defaultBg;
+    }
+
     function update() {
       const now = new Date();
       const day = padZero(now.getDate());
@@ -82,9 +118,14 @@
       const timeStr = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
       document.getElementById('date-box').textContent = dateStr;
       document.getElementById('time-box').textContent = timeStr;
+
+      const messageEl = document.getElementById('main-message');
+      const secondaryEl = document.getElementById('secondary-message');
+      secondaryEl.textContent = "";
+
       const dayOfWeek = now.getDay();
       const totalMinutes = hours * 60 + minutes;
-      const messageEl = document.getElementById('main-message');
+
       const schedule = [
         { start: 8 * 60, end: 9 * 60, type: 'classe' },
         { start: 9 * 60, end: 10 * 60, type: 'classe' },
@@ -93,8 +134,9 @@
         { start: 11 * 60 + 20, end: 12 * 60 + 20, type: 'classe' },
         { start: 12 * 60 + 20, end: 12 * 60 + 40, type: 'esbarjo' },
         { start: 12 * 60 + 40, end: 13 * 60 + 35, type: 'classe' },
-        { start: 13 * 60 + 35, end: 14 * 60 + 30, type: 'classe' },
+        { start: 13 * 60 + 35, end: 14 * 60 + 30, type: 'finalclasse' },
       ];
+
       function getCurrentSlot(minuteOfDay) {
         for (const slot of schedule) {
           if (minuteOfDay >= slot.start && minuteOfDay < slot.end) {
@@ -103,6 +145,7 @@
         }
         return null;
       }
+
       function getNextChange(minuteOfDay) {
         for (const slot of schedule) {
           if (slot.start > minuteOfDay) {
@@ -111,48 +154,67 @@
         }
         return null;
       }
+
+      // Flash del fons entre 14:29 i 14:30 (869 a 870 min), només dilluns a divendres
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes === 869) {
+        startFlashingBackground();
+      } else {
+        stopFlashingBackground();
+      }
+
       if (dayOfWeek === 0 || dayOfWeek === 6 || (dayOfWeek === 5 && totalMinutes >= 870)) {
         messageEl.textContent = "🎉 Bon cap de setmana!";
         return;
       }
+
       if (dayOfWeek >= 1 && dayOfWeek <= 4 && totalMinutes >= 870) {
         messageEl.textContent = "🌙 Fins demà!";
         return;
       }
+
       if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes < 480) {
         const diffMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0) - now;
         messageEl.textContent = "🕗 Falta " + formatTimeDiff(diffMs, true) + " per comencar les classes";
         return;
       }
+
       if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes >= 480 && totalMinutes < 870) {
         const currentSlot = getCurrentSlot(totalMinutes);
         if (currentSlot) {
-          const nextSlot = getNextChange(totalMinutes);
-          if (nextSlot) {
-            const nextChangeTime = new Date(
-              now.getFullYear(),
-              now.getMonth(),
-              now.getDate(),
-              Math.floor(nextSlot.start / 60),
-              nextSlot.start % 60,
-              0
-            );
-            const diffMs = nextChangeTime - now;
-            if (currentSlot.type === 'esbarjo') {
-              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
+          const endMinute = currentSlot.end;
+          const nextChangeTime = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            Math.floor(endMinute / 60),
+            endMinute % 60,
+            0
+          );
+          const diffMs = nextChangeTime - now;
+
+          if (currentSlot.type === 'esbarjo') {
+            messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
+          } else if (currentSlot.type === 'finalclasse') {
+            messageEl.textContent = "🏁 Falta " + formatTimeDiff(diffMs, false) + " per acabar les classes d'avui!";
+          } else {
+            const nextSlot = getNextChange(totalMinutes);
+            if (nextSlot && nextSlot.type === 'esbarjo') {
+              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
             } else {
-              if (nextSlot.type === 'esbarjo') {
-                messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
-              } else {
-                messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
-              }
+              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
             }
-            return;
           }
+
+          const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 30, 0);
+          const timeLeftMs = endOfDay - now;
+          secondaryEl.textContent = "🕓 Per acabar les classes d'avui falta: " + formatTimeDiff(timeLeftMs, true);
+          return;
         }
       }
+
       messageEl.textContent = "";
     }
+
     update();
     setInterval(update, 1000);
   </script>
