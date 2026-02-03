@@ -55,9 +55,97 @@
       margin-top: 12px;
       user-select: none;
     }
+    #settings-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: white;
+      border-radius: 50%;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      user-select: none;
+      z-index: 1000;
+    }
+    #settings-btn img {
+      width: 32px;
+      height: 32px;
+      pointer-events: none;
+    }
+    #settings-menu {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      min-width: 220px;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.95);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    #settings-menu.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #004d40;
+    }
+    .switch {
+      width: 52px;
+      height: 28px;
+      background: #ccc;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .switch::after {
+      content: "";
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: left 0.3s;
+    }
+
+    .switch.active {
+      background: #26a69a;
+    }
+
+    .switch.active::after {
+      left: 27px;
+    }
   </style>
 </head>
 <body>
+  <div id="settings-btn">
+    <img src="settings.svg" alt="Configuració">
+  </div>
+  <div id="settings-menu">
+    <div class="setting-row">
+      <span>Mode enorme</span>
+      <div id="huge-switch" class="switch"></div>
+    </div>
+  </div>
   <div class="container">
     <div id="datetime">
       <div id="date-box"></div>
@@ -86,6 +174,8 @@
     let isFlashing = false;
     const defaultBg = "#e0f7fa";
     const flashBg = "#F89F90";
+    let hugeMode = false;
+    const hugeSwitch = document.getElementById("huge-switch");
 
     function startFlashingBackground() {
       if (isFlashing) return;
@@ -105,6 +195,26 @@
       isFlashing = false;
       document.body.style.backgroundColor = defaultBg;
     }
+    const settingsBtn = document.getElementById("settings-btn");
+    const settingsMenu = document.getElementById("settings-menu");
+
+    settingsBtn.addEventListener("click", () => {
+      settingsMenu.classList.toggle("open");
+    });
+
+
+    hugeSwitch.addEventListener("click", () => {
+      hugeMode = !hugeMode;
+      hugeSwitch.classList.toggle("active");
+
+      document.getElementById("datetime").style.display = hugeMode ? "none" : "flex";
+      //document.getElementById("secondary-message").style.display = hugeMode ? "none" : "block";
+
+      document.getElementById("main-message").style.fontSize =
+        hugeMode ? "15rem" : "7rem";
+      
+      update();
+    });
 
     function update() {
       const now = new Date();
@@ -193,21 +303,32 @@
           const diffMs = nextChangeTime - now;
 
           if (currentSlot.type === 'esbarjo') {
-            messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
+            messageEl.textContent = hugeMode
+              ? formatTimeDiff(diffMs, false)
+              : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
           } else if (currentSlot.type === 'finalclasse') {
-            messageEl.textContent = "🏁 Falta " + formatTimeDiff(diffMs, false) + " per acabar les classes d'avui!";
+            messageEl.textContent = hugeMode
+              ? formatTimeDiff(diffMs, false)
+              : "🏁 Falta " + formatTimeDiff(diffMs, false) + " per acabar les classes d'avui!";
           } else {
             const nextSlot = getNextChange(totalMinutes);
             if (nextSlot && nextSlot.type === 'esbarjo') {
-              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
+              messageEl.textContent = hugeMode
+                ? formatTimeDiff(diffMs, false)
+                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
             } else {
-              messageEl.textContent = "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
+              messageEl.textContent = hugeMode
+                ? formatTimeDiff(diffMs, false)
+                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
             }
           }
 
           const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 30, 0);
           const timeLeftMs = endOfDay - now;
-          secondaryEl.textContent = "🕓 Per acabar les classes d'avui falta: " + formatTimeDiff(timeLeftMs, true);
+          secondaryEl.textContent = hugeMode
+            ? "🕓: " + formatTimeDiff(timeLeftMs, true)
+            : "🕓 Per acabar les classes d'avui falta: " + formatTimeDiff(timeLeftMs, true);
+
           return;
         }
       }
