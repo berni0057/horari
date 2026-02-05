@@ -104,6 +104,11 @@
       font-size: 1.2rem;
       font-weight: 600;
       color: #004d40;
+      gap: 12px;
+      margin-bottom: 14px; 
+    }
+    .setting-row:last-child {
+      margin-bottom: 0;
     }
     .switch {
       width: 52px;
@@ -134,18 +139,49 @@
     .switch.active::after {
       left: 27px;
     }
+
+    #settings-menu input {
+      width: 120px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+
   </style>
 </head>
 <body>
   <div id="settings-btn">
     <img src="settings.svg" alt="Configuració">
   </div>
+
   <div id="settings-menu">
+
     <div class="setting-row">
       <span>Mode enorme</span>
-      <div id="huge-switch" class="switch"></div>
+      <div class="switch" id="hugeModeToggle"></div>
     </div>
+
+    <div class="setting-row">
+      <span>Color del text</span>
+      <input
+        type="text"
+        id="textColorInput"
+        placeholder="p. ex. #333333"
+      >
+    </div>
+
+    <div class="setting-row">
+      <span>Color del fons</span>
+      <input
+        type="text"
+        id="bgColorInput"
+        placeholder="p. ex. #f4f4f4"
+      >
+    </div>
+
   </div>
+
   <div class="container">
     <div id="datetime">
       <div id="date-box"></div>
@@ -175,7 +211,18 @@
     const defaultBg = "#e0f7fa";
     const flashBg = "#F89F90";
     let hugeMode = false;
-    const hugeSwitch = document.getElementById("huge-switch");
+    const hugeSwitch = document.getElementById("hugeModeToggle");
+    const textColorInput = document.getElementById("textColorInput");
+    const bgColorInput = document.getElementById("bgColorInput");
+
+
+    // colors actuals
+    let currentTextColor = "#006064";
+    let currentBgColor = defaultBg;
+
+    // placeholders amb recomanació
+    textColorInput.placeholder = "p. ex. " + currentTextColor;
+    bgColorInput.placeholder = "p. ex. " + currentBgColor;
 
     function startFlashingBackground() {
       if (isFlashing) return;
@@ -193,13 +240,16 @@
         flashInterval = null;
       }
       isFlashing = false;
-      document.body.style.backgroundColor = defaultBg;
+      document.body.style.backgroundColor = currentBgColor;
     }
     const settingsBtn = document.getElementById("settings-btn");
     const settingsMenu = document.getElementById("settings-menu");
 
     settingsBtn.addEventListener("click", () => {
       settingsMenu.classList.toggle("open");
+    });
+    settingsMenu.addEventListener("mouseleave", () => {
+      settingsMenu.classList.remove("open");
     });
 
 
@@ -214,6 +264,21 @@
         hugeMode ? "15rem" : "7rem";
       
       update();
+    });
+
+    textColorInput.addEventListener("input", () => {
+      if (/^#([0-9A-Fa-f]{6})$/.test(textColorInput.value)) {
+        currentTextColor = textColorInput.value;
+        document.getElementById("main-message").style.color = currentTextColor;
+        document.getElementById("secondary-message").style.color = currentTextColor;
+      }
+    });
+
+    bgColorInput.addEventListener("input", () => {
+      if (/^#([0-9A-Fa-f]{6})$/.test(bgColorInput.value)) {
+        currentBgColor = bgColorInput.value;
+        document.body.style.backgroundColor = currentBgColor;
+      }
     });
 
     function update() {
