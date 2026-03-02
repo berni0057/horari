@@ -179,6 +179,72 @@
       height: 43px;
     }
 
+    #dopamine-button {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      font-weight: 900;
+      padding: 18px 40px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #ff4081;
+      color: white;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+      z-index: 2000;
+      transition: transform 0.1s ease;
+    }
+
+    #dopamine-button:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    .dopamine-float {
+      position: fixed;
+      font-size: 1.8rem;
+      font-weight: 700;
+      pointer-events: none;
+      animation: floatUp 0.8s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    }
+    #dopamine-wrapper {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column; /* vertical */
+      align-items: center;
+      z-index: 2000;
+    }
+
+    #dopamine-counter {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: black;
+      pointer-events: none;
+      margin-bottom: 120px; /* espai entre número i botó */
+    }
+
+    #dopamine-video {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1500;
+      pointer-events: none; /* no interfereix amb clics */
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    #dopamine-video video {
+      display: block;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
@@ -228,6 +294,7 @@
     <div id="main-message"></div>
     <div id="secondary-message"></div>
   </div>
+
   <script>
     function padZero(num, length = 2) {
       return num.toString().padStart(length, '0');
@@ -254,6 +321,24 @@
     let baseTimestamp = null;
     let syncInterval = null;
     let timeApiError = false;
+    let dopamineMode = false;
+    let dopamineScore = 0;
+
+    // --- Konami Code ---
+    const konamiSequence = [
+      "ArrowUp",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowLeft",
+      "ArrowRight",
+      "b",
+      "a"
+    ];
+
+    let konamiIndex = 0;
 
     const internetSwitch = document.getElementById("internetTimeToggle");
     const hugeSwitch = document.getElementById("hugeModeToggle");
@@ -329,6 +414,128 @@
       }
     }
 
+    function activateDopamineMode() {
+      if (dopamineMode) return;
+
+      dopamineMode = true;
+      console.log("Mode Dopamina ACTIVAT");
+
+      // Desactivar inputs de color i buidar placeholders
+      textColorInput.disabled = true;
+      textColorInput.placeholder = "";
+      bgColorInput.disabled = true;
+      bgColorInput.placeholder = "";
+
+
+      const messageEl = document.getElementById("main-message");
+
+      // Crear contenidor
+      const wrapper = document.createElement("div");
+      wrapper.id = "dopamine-wrapper";
+      wrapper.style.position = "fixed";
+      wrapper.style.bottom = "40px";
+      wrapper.style.left = "50%";
+      wrapper.style.transform = "translateX(-50%)";
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.gap = "15px";
+      wrapper.style.zIndex = 2000;
+      document.body.appendChild(wrapper);
+
+      // Crear botó
+      const button = document.createElement("button");
+      button.id = "dopamine-button";
+      button.textContent = "Clic!";
+      button.style.fontSize = "2.5rem";
+      button.style.fontWeight = "900";
+      button.style.padding = "18px 40px";
+      button.style.border = "none";
+      button.style.borderRadius = "20px";
+      button.style.cursor = "pointer";
+      button.style.background = "#ff4081";
+      button.style.color = "white";
+      button.style.boxShadow = "0 6px 14px rgba(0,0,0,0.3)";
+      button.style.transition = "transform 0.1s ease";
+      wrapper.appendChild(button);
+
+      button.addEventListener("mousedown", () => {
+        button.style.transform = "translateX(-50%) scale(0.95)";
+      });
+      button.addEventListener("mouseup", () => {
+        button.style.transform = "translateX(-50%) scale(1)";
+      });
+
+      // Crear comptador
+      const counter = document.createElement("span");
+      counter.id = "dopamine-counter";
+      counter.textContent = "0";
+      counter.style.fontSize = "2.5rem";
+      counter.style.fontWeight = "900";
+      counter.style.color = "black";
+      counter.style.pointerEvents = "none";
+      wrapper.appendChild(counter);
+
+      // Rainbow ultra ràpid
+      setInterval(() => {
+        messageEl.style.color = getRandomColor();
+        button.style.backgroundColor = getRandomColor();
+        counter.style.color = getRandomColor();
+      }, 80);
+
+      // Click del botó
+      let dopamineScore = 0;
+      // Click del botó
+      button.addEventListener("click", () => {
+        dopamineScore++;
+        counter.textContent = dopamineScore;
+
+        const float = document.createElement("div");
+        float.className = "dopamine-float";
+        float.textContent = "+1";
+
+        const rect = button.getBoundingClientRect();
+        const randomX = rect.left + Math.random() * rect.width - 10;
+        const randomY = rect.top - 30 + Math.random() * 10; // **per sobre del botó**
+
+        float.style.position = "fixed";
+        float.style.left = randomX + "px";
+        float.style.top = randomY + "px";
+        float.style.color = getRandomColor();
+        float.style.fontSize = "1.8rem";
+        float.style.fontWeight = "700";
+        float.style.pointerEvents = "none";
+        float.style.animation = "floatUp 0.8s ease-out forwards";
+
+        document.body.appendChild(float);
+
+        setTimeout(() => float.remove(), 800);
+      });
+
+      //video
+      // dins activateDopamineMode()
+      const videoWrapper = document.createElement("div");
+      videoWrapper.id = "dopamine-video";
+      document.body.appendChild(videoWrapper);
+
+      const video = document.createElement("video");
+      video.src = "video.mp4"; // ruta del vídeo local o url
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.width = 300; // mida petita
+      video.height = 168; // proporció 16:9
+      videoWrapper.appendChild(video);
+    }
+
+    function getRandomColor() {
+      const letters = "0123456789ABCDEF";
+      let color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
     const settingsBtn = document.getElementById("settings-btn");
     const settingsMenu = document.getElementById("settings-menu");
 
@@ -390,6 +597,25 @@
         fullscreenIcon.src = "fullscreen2.svg";
       } else {
         fullscreenIcon.src = "fullscreen1.svg";
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+
+      // Comprovem si la tecla coincideix amb la seqüència actual
+      if (key === konamiSequence[konamiIndex]) {
+        konamiIndex++;
+
+        // Si hem arribat al final → activem
+        if (konamiIndex === konamiSequence.length) {
+          activateDopamineMode();
+          konamiIndex = 0; // reiniciem per poder tornar-ho a fer
+        }
+
+      } else {
+        // Si falla, reiniciem (però permet que torni a començar si la tecla és ArrowUp)
+        konamiIndex = key === konamiSequence[0] ? 1 : 0;
       }
     });
 
