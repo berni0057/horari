@@ -71,6 +71,10 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       user-select: none;
       z-index: 1000;
+      transition: transform 0.2s ease, background 0.3s;
+    }
+    #settings-btn:hover {
+      transform: scale(1.08);
     }
     #settings-btn img {
       width: 43px;
@@ -111,6 +115,7 @@
       margin-bottom: 0;
     }
     .switch {
+      display: inline-block;
       width: 52px;
       height: 28px;
       background: #ccc;
@@ -148,12 +153,41 @@
       font-size: 0.9rem;
     }
 
+    #fullscreen-btn {
+      position: fixed;
+      top: 20px;
+      right: 110px; /* separació respecte el botó de configuració */
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      border: none;
+      background: var(--button-bg, #ffffff);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, background 0.3s;
+    }
+
+    #fullscreen-btn:hover {
+      transform: scale(1.08);
+    }
+
+    #fullscreen-btn img {
+      width: 43px;
+      height: 43px;
+    }
+
   </style>
 </head>
 <body>
   <div id="settings-btn">
     <img src="settings.svg" alt="Configuració">
   </div>
+  <button id="fullscreen-btn">
+    <img src="fullscreen1.svg" alt="Pantalla completa">
+  </button>
 
   <div id="settings-menu">
 
@@ -225,6 +259,8 @@
     const hugeSwitch = document.getElementById("hugeModeToggle");
     const textColorInput = document.getElementById("textColorInput");
     const bgColorInput = document.getElementById("bgColorInput");
+    const fullscreenBtn = document.getElementById("fullscreen-btn");
+    const fullscreenIcon = fullscreenBtn.querySelector("img");
     internetSwitch.classList.add("active");
 
     async function fetchInternetTime() {
@@ -244,12 +280,11 @@
         console.log("Hora sincronitzada correctament (timeapi.io)");
       } catch (error) {
         console.error("Error obtenint hora d'internet:", error);
+        useInternetTime = false;
+        internetSwitch.classList.remove("active");
         timeApiError = true;
       }
     }
-
-    fetchInternetTime();
-    syncInterval = setInterval(fetchInternetTime, 600000);
 
     function getAccurateNow() {
       if (useInternetTime && baseTime && baseTimestamp) {
@@ -285,6 +320,15 @@
       isFlashing = false;
       document.body.style.backgroundColor = currentBgColor;
     }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
     const settingsBtn = document.getElementById("settings-btn");
     const settingsMenu = document.getElementById("settings-menu");
 
@@ -336,6 +380,16 @@
       if (/^#([0-9A-Fa-f]{6})$/.test(bgColorInput.value)) {
         currentBgColor = bgColorInput.value;
         document.body.style.backgroundColor = currentBgColor;
+      }
+    });
+
+    fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement) {
+        fullscreenIcon.src = "fullscreen2.svg";
+      } else {
+        fullscreenIcon.src = "fullscreen1.svg";
       }
     });
 
