@@ -41,7 +41,7 @@
       user-select: none;
     }
     #main-message {
-      font-size: 7rem;
+      font-size: 5.5rem;
       font-weight: 900;
       text-align: center;
       color: #006064;
@@ -59,8 +59,8 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      width: 60px;
-      height: 60px;
+      width: 75px;
+      height: 75px;
       background: white;
       border-radius: 50%;
       font-size: 2rem;
@@ -73,8 +73,8 @@
       z-index: 1000;
     }
     #settings-btn img {
-      width: 32px;
-      height: 32px;
+      width: 43px;
+      height: 43px;
       pointer-events: none;
     }
     #settings-menu {
@@ -161,6 +161,10 @@
       <span>Mode enorme</span>
       <div class="switch" id="hugeModeToggle"></div>
     </div>
+    <div class="setting-row">
+      <span>Hora d'internet</span>
+      <div class="switch" id="internetTimeToggle"></div>
+    </div>
 
     <div class="setting-row">
       <span>Color del text</span>
@@ -211,10 +215,49 @@
     const defaultBg = "#e0f7fa";
     const flashBg = "#F89F90";
     let hugeMode = false;
+    let useInternetTime = true;
+    let baseTime = null;
+    let baseTimestamp = null;
+    let syncInterval = null;
+    let timeApiError = false;
+
+    const internetSwitch = document.getElementById("internetTimeToggle");
     const hugeSwitch = document.getElementById("hugeModeToggle");
     const textColorInput = document.getElementById("textColorInput");
     const bgColorInput = document.getElementById("bgColorInput");
+    internetSwitch.classList.add("active");
 
+    async function fetchInternetTime() {
+      try {
+        const response = await fetch(
+          "https://time.now/developer/api/timezone/Europe/Madrid"
+        );
+        if (!response.ok) throw new Error("Error API");
+
+        const data = await response.json();
+        const apiTime = new Date(data.datetime);
+
+        baseTime = apiTime;
+        baseTimestamp = Date.now();
+        timeApiError = false;
+
+        console.log("Hora sincronitzada correctament (timeapi.io)");
+      } catch (error) {
+        console.error("Error obtenint hora d'internet:", error);
+        timeApiError = true;
+      }
+    }
+
+    fetchInternetTime();
+    syncInterval = setInterval(fetchInternetTime, 600000);
+
+    function getAccurateNow() {
+      if (useInternetTime && baseTime && baseTimestamp) {
+        const diff = Date.now() - baseTimestamp;
+        return new Date(baseTime.getTime() + diff);
+      }
+      return new Date();
+    }
 
     // colors actuals
     let currentTextColor = "#006064";
@@ -266,6 +309,21 @@
       update();
     });
 
+    internetSwitch.addEventListener("click", async () => {
+      useInternetTime = !useInternetTime;
+      internetSwitch.classList.toggle("active");
+
+      if (useInternetTime) {
+        await fetchInternetTime();
+        syncInterval = setInterval(fetchInternetTime, 600000);
+      } else {
+        clearInterval(syncInterval);
+        syncInterval = null;
+      }
+
+      update();
+    });
+
     textColorInput.addEventListener("input", () => {
       if (/^#([0-9A-Fa-f]{6})$/.test(textColorInput.value)) {
         currentTextColor = textColorInput.value;
@@ -282,7 +340,7 @@
     });
 
     function update() {
-      const now = new Date();
+      const now = getAccurateNow();
       const day = padZero(now.getDate());
       const month = padZero(now.getMonth() + 1);
       const year = now.getFullYear();
@@ -297,6 +355,10 @@
       const messageEl = document.getElementById('main-message');
       const secondaryEl = document.getElementById('secondary-message');
       secondaryEl.textContent = "";
+
+      if (useInternetTime && timeApiError) {
+        secondaryEl.textContent = "⚠️ Error amb l'hora d'internet. Usant hora local.";
+      }
 
       const dayOfWeek = now.getDay();
       const totalMinutes = hours * 60 + minutes;
@@ -399,6 +461,12 @@
       }
 
       messageEl.textContent = "";
+    }
+
+    // Intent inicial si està activat
+    if (useInternetTime) {
+      fetchInternetTime();
+      syncInterval = setInterval(fetchInternetTime, 600000);
     }
 
     update();
