@@ -428,6 +428,9 @@
 
 
       const messageEl = document.getElementById("main-message");
+      const secondary = document.getElementById("secondary-message");
+      const date = document.getElementById("date-box");
+      const time = document.getElementById("time-box")
 
       // Crear contenidor
       const wrapper = document.createElement("div");
@@ -475,12 +478,23 @@
       counter.style.pointerEvents = "none";
       wrapper.appendChild(counter);
 
+      messageEl.style.webkitTextStroke = "3px white";
+      secondary.style.webkitTextStroke = "1px white";
+      counter.style.webkitTextStroke = "2px white";
+
       // Rainbow ultra ràpid
       setInterval(() => {
         messageEl.style.color = getRandomColor();
         button.style.backgroundColor = getRandomColor();
         counter.style.color = getRandomColor();
+        secondary.style.color = getRandomColor();
+        date.style.color = getRandomColor();
+        time.style.color = getRandomColor();
       }, 80);
+
+      setInterval(() => {
+        document.body.style.backgroundColor = getRandomColor();
+      }, 250);
 
       // Click del botó
       let dopamineScore = 0;
