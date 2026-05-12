@@ -150,6 +150,12 @@
       background: #26a69a;
     }
 
+    .switch.disabled {
+      background: #888;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
     .switch.active::after {
       left: 27px;
     }
@@ -330,6 +336,7 @@
     let timeApiError = false;
     let dopamineMode = false;
     let dopamineScore = 0;
+    let hugeModeAvailable = false;
 
     // --- Konami Code ---
     const konamiSequence = [
@@ -570,6 +577,7 @@
 
 
     hugeSwitch.addEventListener("click", () => {
+      if (!hugeModeAvailable) return;
       hugeMode = !hugeMode;
       hugeSwitch.classList.toggle("active");
 
@@ -658,7 +666,7 @@
       const secondaryEl = document.getElementById('secondary-message');
       secondaryEl.textContent = "";
 
-      if (useInternetTime && timeApiError) {
+      if (timeApiError) {
         secondaryEl.textContent = "⚠️ Error amb l'hora d'internet. Usant hora local.";
       }
 
@@ -702,16 +710,30 @@
       }
 
       if (dayOfWeek === 0 || dayOfWeek === 6 || (dayOfWeek === 5 && totalMinutes >= 870)) {
+
+        hugeModeAvailable = false;
+        hugeMode = false;
+        hugeSwitch.classList.add("disabled");
+        hugeSwitch.classList.remove("active");
+
         messageEl.textContent = "🎉 Bon cap de setmana!";
         return;
       }
 
       if (dayOfWeek >= 1 && dayOfWeek <= 4 && totalMinutes >= 870) {
+
+        hugeModeAvailable = false;
+        hugeMode = false;
+        hugeSwitch.classList.add("disabled");
+        hugeSwitch.classList.remove("active");
+
         messageEl.textContent = "🌙 Fins demà!";
         return;
       }
 
       if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes < 480) {
+        hugeModeAvailable = true;
+        hugeSwitch.classList.remove("disabled");
         const diffMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0) - now;
         messageEl.textContent = "🕗 Falta " + formatTimeDiff(diffMs, true) + " per comencar les classes";
         return;
