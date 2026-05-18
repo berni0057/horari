@@ -19,7 +19,7 @@
       font-optical-sizing: auto;
       font-style: normal;
       font-variation-settings:
-        "wdth" 112.5,
+        "wdth" 112.5;
     }
     .container {
       display: flex;
@@ -715,6 +715,8 @@
         hugeMode = false;
         hugeSwitch.classList.add("disabled");
         hugeSwitch.classList.remove("active");
+        document.getElementById("datetime").style.display = "flex";
+        document.getElementById("main-message").style.fontSize = "5.5rem";
 
         messageEl.textContent = "🎉 Bon cap de setmana!";
         return;
@@ -724,6 +726,8 @@
 
         hugeModeAvailable = false;
         hugeMode = false;
+        document.getElementById("datetime").style.display = "flex";
+        document.getElementById("main-message").style.fontSize = "5.5rem";
         hugeSwitch.classList.add("disabled");
         hugeSwitch.classList.remove("active");
 
@@ -740,6 +744,9 @@
       }
 
       if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes >= 480 && totalMinutes < 870) {
+        hugeModeAvailable = true;
+        hugeSwitch.classList.remove("disabled");
+        
         const currentSlot = getCurrentSlot(totalMinutes);
         if (currentSlot) {
           const endMinute = currentSlot.end;
