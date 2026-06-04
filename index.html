@@ -670,6 +670,18 @@
         secondaryEl.textContent = "⚠️ Error amb l'hora d'internet. Usant hora local.";
       }
 
+      function setMessage(text) {
+        messageEl.textContent = text;
+
+        const match = text.match(/\d{2}:\d{2}(?::\d{2})?/);
+
+        if (match) {
+          document.title = `🕗 ${match[0]}`;
+        } else {
+          document.title = "Horari Escolar 🕗";
+        }
+      }
+
       const dayOfWeek = now.getDay();
       const totalMinutes = hours * 60 + minutes;
 
@@ -718,7 +730,7 @@
         document.getElementById("datetime").style.display = "flex";
         document.getElementById("main-message").style.fontSize = "5.5rem";
 
-        messageEl.textContent = "🎉 Bon cap de setmana!";
+        setMessage("🎉 Bon cap de setmana!");
         return;
       }
 
@@ -731,7 +743,7 @@
         hugeSwitch.classList.add("disabled");
         hugeSwitch.classList.remove("active");
 
-        messageEl.textContent = "🌙 Fins demà!";
+        setMessage("🌙 Fins demà!");
         return;
       }
 
@@ -739,7 +751,7 @@
         hugeModeAvailable = true;
         hugeSwitch.classList.remove("disabled");
         const diffMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0) - now;
-        messageEl.textContent = "🕗 Falta " + formatTimeDiff(diffMs, true) + " per comencar les classes";
+        setMessage("🕗 Falta " + formatTimeDiff(diffMs, true) + " per comencar les classes");
         return;
       }
 
@@ -761,23 +773,23 @@
           const diffMs = nextChangeTime - now;
 
           if (currentSlot.type === 'esbarjo') {
-            messageEl.textContent = hugeMode
+            setMessage(hugeMode
               ? formatTimeDiff(diffMs, false)
-              : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe";
+              : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per tornar a classe");
           } else if (currentSlot.type === 'finalclasse') {
-            messageEl.textContent = hugeMode
+            setMessage(hugeMode
               ? formatTimeDiff(diffMs, false)
-              : "🏁 Falta " + formatTimeDiff(diffMs, false) + " per acabar les classes d'avui!";
+              : "🏁 Falta " + formatTimeDiff(diffMs, false) + " per acabar les classes d'avui!");
           } else {
             const nextSlot = getNextChange(totalMinutes);
             if (nextSlot && nextSlot.type === 'esbarjo') {
-              messageEl.textContent = hugeMode
+              setMessage(hugeMode
                 ? formatTimeDiff(diffMs, false)
-                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo";
+                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " per l'esbarjo");
             } else {
-              messageEl.textContent = hugeMode
+              setMessage(hugeMode
                 ? formatTimeDiff(diffMs, false)
-                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe";
+                : "⏳ Falta " + formatTimeDiff(diffMs, false) + " pel canvi de classe");
             }
           }
 
