@@ -13,26 +13,31 @@
 
   <style>
     body {
-        margin: 0;
-        height: 100vh;
-        overflow: hidden;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
 
-        background: linear-gradient(
-        -45deg,
-        #e0f7fa,
-        #b2ebf2,
-        #80deea,
-        #4dd0e1
-        );
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
 
-        background-size: 400% 400%;
-        animation: gradientMove 18s ease infinite;
+      background: linear-gradient(
+          -45deg,
+          #e0f7fa,
+          #b2ebf2,
+          #80deea,
+          #4dd0e1
+      );
 
-        font-family: "Inconsolata", monospace;
+      background-size: 400% 400%;
+      animation: gradientMove 18s ease infinite;
 
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      font-family: "Inconsolata", monospace;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     @keyframes gradientMove {
@@ -207,6 +212,8 @@
 
     function update() {
 
+      document.body.classList.remove("flash");
+
       const now = getNow();
 
       const h = now.getHours();
@@ -287,13 +294,25 @@
           message.textContent = format(diff);
 
           if (slot.text === "esbarjo") {
-            secondary.textContent = "Per tornar a classe";
+
+            secondary.textContent = "per tornar a classe";
+
           }
           else if (slot.text === "final") {
-            secondary.textContent = "Per acabar les classes";
+
+            secondary.textContent = "per acabar les classes";
+
           }
           else {
-            secondary.textContent = "Pel canvi de classe";
+
+            const nextSlot = schedule.find(s => s.start === slot.end);
+
+            if (nextSlot && nextSlot.text === "esbarjo") {
+              secondary.textContent = "per l'esbarjo";
+            } else {
+              secondary.textContent = "pel canvi de classe";
+            }
+
           }
 
           break;
