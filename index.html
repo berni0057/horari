@@ -692,8 +692,8 @@
         { start: 10 * 60 + 20, end: 11 * 60 + 20, type: 'classe' },
         { start: 11 * 60 + 20, end: 12 * 60 + 20, type: 'classe' },
         { start: 12 * 60 + 20, end: 12 * 60 + 40, type: 'esbarjo' },
-        { start: 12 * 60 + 40, end: 13 * 60 + 35, type: 'classe' },
-        { start: 13 * 60 + 35, end: 14 * 60 + 30, type: 'finalclasse' },
+        { start: 12 * 60 + 40, end: 13 * 60 + 40, type: 'classe' },
+        { start: 13 * 60 + 40, end: 14 * 60 + 40, type: 'finalclasse' },
       ];
 
       function getCurrentSlot(minuteOfDay) {
@@ -715,13 +715,13 @@
       }
 
       // Flash del fons entre 14:29 i 14:30 (869 a 870 min), només dilluns a divendres
-      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes === 869) {
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes === 879) {
         startFlashingBackground();
       } else {
         stopFlashingBackground();
       }
 
-      if (dayOfWeek === 0 || dayOfWeek === 6 || (dayOfWeek === 5 && totalMinutes >= 870)) {
+      if (dayOfWeek === 0 || dayOfWeek === 6 || (dayOfWeek === 5 && totalMinutes >= 880)) {
 
         hugeModeAvailable = false;
         hugeMode = false;
@@ -734,7 +734,7 @@
         return;
       }
 
-      if (dayOfWeek >= 1 && dayOfWeek <= 4 && totalMinutes >= 870) {
+      if (dayOfWeek >= 1 && dayOfWeek <= 4 && totalMinutes >= 880) {
 
         hugeModeAvailable = false;
         hugeMode = false;
@@ -755,7 +755,7 @@
         return;
       }
 
-      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes >= 480 && totalMinutes < 870) {
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && totalMinutes >= 480 && totalMinutes < 880) {
         hugeModeAvailable = true;
         hugeSwitch.classList.remove("disabled");
         
@@ -793,7 +793,7 @@
             }
           }
 
-          const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 30, 0);
+          const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 40, 0);
           const timeLeftMs = endOfDay - now;
           secondaryEl.textContent = hugeMode
             ? "🕓: " + formatTimeDiff(timeLeftMs, true)

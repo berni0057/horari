@@ -130,8 +130,8 @@
       { start: 620, end: 680, text: "pel canvi de classe" },
       { start: 680, end: 740, text: "per l'esbarjo" },
       { start: 740, end: 760, text: "per tornar a classe" },
-      { start: 760, end: 815, text: "pel canvi de classe" },
-      { start: 815, end: 870, text: "per acabar les classes" }
+      { start: 760, end: 820, text: "pel canvi de classe" },
+      { start: 820, end: 880, text: "per acabar les classes" }
     ];
 
     // Mantinguda la teva funció de xarxa per ordinadors amb hora incorrecta
@@ -181,7 +181,7 @@
       const day = now.getDay();
 
       // Cap de setmana o divendres tarda
-      if (day === 0 || day === 6 || (day === 5 && totalMinutes >= 870)) {
+      if (day === 0 || day === 6 || (day === 5 && totalMinutes >= 880)) {
         mainMessage.textContent = "🎉 Bon cap de setmana!";
         secondaryMessage.textContent = "";
         if (isFlashing) { bodyStyle.remove("flash"); isFlashing = false; }
@@ -189,7 +189,7 @@
       }
 
       // Tardes de dilluns a dijous
-      if (totalMinutes >= 870) {
+      if (totalMinutes >= 880) {
         mainMessage.textContent = "🌙 Fins demà!";
         secondaryMessage.textContent = "";
         if (isFlashing) { bodyStyle.remove("flash"); isFlashing = false; }
@@ -215,7 +215,7 @@
       }
 
       // Control eficient de l'efecte Flash de l'últim minut
-      if (totalMinutes === 869) {
+      if (totalMinutes === 879) {
         if (!isFlashing) { bodyStyle.add("flash"); isFlashing = true; }
       } else {
         if (isFlashing) { bodyStyle.remove("flash"); isFlashing = false; }
